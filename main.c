@@ -80,43 +80,52 @@ void cb_pop_front(circular_buffer *cb, void *item)
         cb->tail = cb->buffer;
     cb->count--;
 }
+
+void _cb_clone(circular_buffer *dcb, circular_buffer *scb)
+{
+    dcb->buffer = scb->buffer ;
+    dcb->buffer_end = scb->buffer_end ;
+    dcb->capacity = scb->capacity ;
+    dcb->count = scb->count ;
+    dcb->overflow = scb->overflow ;
+    dcb->sz = scb->sz ;
+    dcb->head = scb->head ;
+    dcb->tail = scb->tail ;
+}
+
+void _cb_print_all(circular_buffer *cb)
+{
+    int i;
+    char buf[cb->sz];
+    int capacity = 0 == cb->overflow ? cb->count : cb->capacity;
+
+    for(i=0; i<capacity; i++)
+    {
+        cb_pop_front(cb, buf);
+        //snprintf(buf, cb->sz, "%s", cb->buffer + (cb->sz * cb->count) + cb->sz * i);
+        //printf(stderr, "data(%d) =%s\n", i, buf)
+        fprintf(stderr, "data(%d) =%s\n", i, buf);
+    }
+}
+
 /**
  * @breif print all data in order
  */
 void cb_print_all(circular_buffer *cb)
 {
-    int i;
-    char buf[cb->sz];
     circular_buffer clone_cb, *pclone_cb;
-    pclone_cb = &clone_cb;
 
-    pclone_cb->buffer = cb->buffer ;
-    pclone_cb->buffer_end = cb->buffer_end ;
-    pclone_cb->capacity = cb->capacity ;
-    pclone_cb->count = cb->count ;
-    pclone_cb->overflow = cb->overflow ;
-    pclone_cb->sz = cb->sz ;
-    pclone_cb->head = cb->head ;
-    pclone_cb->tail = cb->tail ;
+    _cb_clone(&clone_cb, cb);
+    _cb_print_all(&clone_cb);
+}
 
-    pclone_cb->capacity = 0 == pclone_cb->overflow ? pclone_cb->count : pclone_cb->capacity;
-
-    for(i=0; i<pclone_cb->capacity; i++)
-    {
-        cb_pop_front(pclone_cb, buf);
-        //snprintf(buf, cb->sz, "%s", cb->buffer + (cb->sz * cb->count) + cb->sz * i);
-        //printf(stderr, "data(%d) =%s\n", i, buf)
-        fprintf(stderr, "data(%d) =%s\n", i, buf);
-    }
-    //else
-    //{
-    //    for(i=0; i<cb->count; i++)
-    //    {
-    //        snprintf(buf, cb->sz, "%s", cb->buffer + (cb->sz * cb->count) + cb->sz * i);
-    //        printf(stderr, "data(%d) =%s\n", i, buf)
-    //    }
-    //}
-
+/**
+ * @breif print all data in order and remove
+ */
+void cb_print_all_remove(circular_buffer *cb)
+{
+    _cb_print_all(cb);
+    cb->overflow = 0;
 }
 
 
@@ -172,7 +181,7 @@ int main(int argc, char* argv[])
     //snprintf(item, sz, "10 What are the uses of circular buffer?");
     //cb_push_back(&cb, item);
 
-#if 0
+#if 1
     snprintf(item, sz, "3 How good is the memory mapped Circular Buffer on Wikipedia?");
     cb_push_back(&cb, item);
 
@@ -190,6 +199,17 @@ int main(int argc, char* argv[])
 
     int i;
     cb_print_all(&cb);
+    fprintf(stderr, "add one: 9 \n");
+    snprintf(item, sz, "9 end pointer problem of a circular buffer");
+    cb_push_back(&cb, item);
+
+    cb_print_all(&cb);
+
+    fprintf(stderr, "before call cb_print_all_remove\n");
+    cb_print_all_remove(&cb);
+    fprintf(stderr, "remove it\n");
+    cb_print_all_remove(&cb);
+    fprintf(stderr, "end\n");
 
     return 0;
 }
