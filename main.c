@@ -42,22 +42,23 @@ void cb_free(circular_buffer *cb)
 
 void cb_push_back(circular_buffer *cb, const void *item)
 {
-    //fprintf(stderr, "cb->count(%d)\n", cb->count);
-    if(cb->count >= cb->capacity)
-    {
-        fprintf(stderr, "cb->count == cb->capacity, we remove oldest one\n");
-        //cb->oldest = (cb->oldest == cb->capacity) ? cb->oldest++ : 0;
-        //cb_pop_front(cb, NULL);
-        cb->count = cb->count % cb->capacity;
-        cb->overflow = 1;
-        cb->tail = cb->buffer + cb->sz * (cb->count+1);
-    }
-
     memcpy(cb->head, item, cb->sz);
     cb->head = (char*)cb->head + cb->sz;
 
     if(cb->head == cb->buffer_end)
         cb->head = cb->buffer;
+
+    if(cb->count >= cb->capacity)
+    {
+        fprintf(stderr, "cb->count == cb->capacity, we remove oldest one\n");
+        cb->count = cb->count % cb->capacity;
+        cb->overflow = 1;
+    }
+    else if (1 == cb->overflow)
+    {
+        fprintf(stderr, "cb->tail at %p\n", cb->tail);
+        cb->tail = cb->head == cb->buffer ? cb->buffer_end - cb->sz : cb->head;
+    }
 
     cb->count++;
 }
@@ -73,6 +74,7 @@ void cb_pop_front(circular_buffer *cb, void *item)
         return;
     }
 
+    //fprintf(stderr, "cb->tail at %p\n", cb->tail);
     memcpy(item, cb->tail, cb->sz);
 
     cb->tail = (char*)cb->tail + cb->sz;
