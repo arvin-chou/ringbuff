@@ -25,6 +25,7 @@ void cb_init(circular_buffer *cb, size_t capacity, size_t sz)
         // handle error
         assert("XX");
     }
+    //memset(cb->buffer, 0x00, capacity * sz);
     cb->buffer_end = (char *)cb->buffer + capacity * sz;
     cb->capacity = capacity;
     cb->count = 0;
@@ -54,11 +55,11 @@ void cb_push_back(circular_buffer *cb, const void *item)
         cb->count = cb->count % cb->capacity;
         cb->overflow = 1;
     }
-    else if (1 == cb->overflow)
-    {
-        fprintf(stderr, "cb->tail at %p\n", cb->tail);
-        cb->tail = cb->head == cb->buffer ? cb->buffer_end - cb->sz : cb->head;
-    }
+    //else if (1 == cb->overflow)
+    //{
+    //    fprintf(stderr, "cb->tail at %p\n", cb->tail);
+    //    cb->tail = cb->head == cb->buffer ? cb->buffer_end - cb->sz : cb->head;
+    //}
 
     cb->count++;
 }
@@ -68,11 +69,11 @@ void cb_push_back(circular_buffer *cb, const void *item)
  */
 void cb_pop_front(circular_buffer *cb, void *item)
 {
-    if(cb->count == 0 && cb->overflow == 0)
-    {
-        fprintf(stderr, "cb->count == 0\n");
-        return;
-    }
+    //if(cb->count == 0 && cb->overflow == 0)
+    //{
+    //    fprintf(stderr, "cb->count == 0\n");
+    //    return;
+    //}
 
     //fprintf(stderr, "cb->tail at %p\n", cb->tail);
     memcpy(item, cb->tail, cb->sz);
@@ -99,8 +100,24 @@ void _cb_print_all(circular_buffer *cb)
 {
     int i;
     char buf[cb->sz];
-    int capacity = 0 == cb->overflow ? cb->count : cb->capacity;
+    int capacity ;//= 0 == cb->overflow ? cb->count : cb->capacity;
+    if (0 == cb->overflow)
+    {
+        capacity = cb->count;
+    }
+    else
+    {
+        capacity = cb->capacity;
+        cb->tail = cb->head;
+    }
+        //0 == cb->overflow ? cb->head : cb->head + cb->sz;
 
+    //while ('\0' != *((char*)(cb->tail )) && i++ < cb->capacity )
+    //{
+    //    cb_pop_front(cb, buf);
+    //    fprintf(stderr, "data(%d) =%s\n", i, buf);
+    //}
+    //return;
     for(i=0; i<capacity; i++)
     {
         cb_pop_front(cb, buf);
@@ -127,6 +144,7 @@ void cb_print_all(circular_buffer *cb)
 void cb_print_all_remove(circular_buffer *cb)
 {
     _cb_print_all(cb);
+    cb->count= 0;
     cb->overflow = 0;
 }
 
@@ -180,8 +198,8 @@ int main(int argc, char* argv[])
     snprintf(item, sz, "2 Circular buffer in JavaScript");
     cb_push_back(&cb, item);
 
-    //snprintf(item, sz, "10 What are the uses of circular buffer?");
-    //cb_push_back(&cb, item);
+    cb_print_all(&cb);
+    fprintf(stderr, "add to 5\n");
 
 #if 1
     snprintf(item, sz, "3 How good is the memory mapped Circular Buffer on Wikipedia?");
@@ -191,8 +209,15 @@ int main(int argc, char* argv[])
     cb_push_back(&cb, item);
     snprintf(item, sz, "5 end pointer problem of a circular buffer");
     cb_push_back(&cb, item);
+    cb_print_all(&cb);
+    fprintf(stderr, "add one: 6 \n");
+
     snprintf(item, sz, "6 end pointer problem of a circular buffer");
     cb_push_back(&cb, item);
+
+    cb_print_all(&cb);
+    fprintf(stderr, "add to 8\n");
+
     snprintf(item, sz, "7 end pointer problem of a circular buffer");
     cb_push_back(&cb, item);
     snprintf(item, sz, "8 end pointer problem of a circular buffer");
@@ -209,7 +234,21 @@ int main(int argc, char* argv[])
 
     fprintf(stderr, "before call cb_print_all_remove\n");
     cb_print_all_remove(&cb);
-    fprintf(stderr, "remove it\n");
+    fprintf(stderr, "has removed it\n");
+    cb_print_all_remove(&cb);
+    fprintf(stderr, "remove it again\n");
+    cb_print_all_remove(&cb);
+
+    fprintf(stderr, "add 10\n");
+    snprintf(item, sz, "10 What are the uses of circular buffer?");
+    cb_push_back(&cb, item);
+    cb_print_all(&cb);
+
+    fprintf(stderr, "add 11\n");
+    snprintf(item, sz, "11 What are the uses of circular buffer?");
+    cb_push_back(&cb, item);
+    cb_print_all_remove(&cb);
+    fprintf(stderr, "has removed it\n");
     cb_print_all_remove(&cb);
     fprintf(stderr, "end\n");
 
