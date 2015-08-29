@@ -1,0 +1,11 @@
+compiler:
+  - gcc
+language: c
+install: make 
+branches:
+  only:
+    - master
+notification:
+  email:
+    - arvin.chou.tw@gmail.com
+  slack: acropolis-n:uUJnNl7vbnWuPN6gJkJvc4mr
